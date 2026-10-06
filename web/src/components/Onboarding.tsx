@@ -95,7 +95,7 @@ function StepWelcome({ consented, onNext }: { consented: boolean; onNext: () => 
           Constellation lays out every ad of one Meta ad account in a 3D space, grouped by where Meta actually
           delivers it: new people, people who engaged, or existing customers. Click any ad for its numbers.
         </p>
-        <p>It runs only on this Mac. Your token and your data never leave it.</p>
+        <p>It runs only on this Mac. Your token and ad data go only to Meta, never anywhere else.</p>
       </div>
 
       <div className="mt-5 border border-line rounded-xl px-4 py-3.5 bg-surface-recessed">
