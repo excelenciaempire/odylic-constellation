@@ -375,7 +375,7 @@ def build(capture: list = None, require_thumbs: bool = True) -> dict:
     return {
         "version": 1,
         "seed": SEED,
-        "note": "Synthetic demo brand. All names, ids, numbers, comments and images are invented.",
+        "note": "Synthetic demo brand. All names, ids, numbers and comments are invented; the images are sample ad templates.",
         "account": {"id": "act_demo", "name": "Demo Brand", "currency": "USD", "account_status": 1,
                     "timezone_name": "America/Los_Angeles"},
         "ads": ads,

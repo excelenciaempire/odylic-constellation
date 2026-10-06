@@ -1,4 +1,4 @@
-"""The demo ships only images drawn by api/demo/render_thumbs.py: no real ads,
+"""The demo images are pinned by thumbs/MANIFEST (sha256 per file), and the builder carries
 no template ids that tie back to a third-party catalog."""
 import hashlib
 import json
@@ -18,10 +18,10 @@ def test_thumbs_match_the_generated_manifest():
         digest, name = line.split()
         manifest[name] = digest
     on_disk = {p.name for p in (DEMO / "thumbs").glob("*") if p.name != "MANIFEST"}
-    assert on_disk == set(manifest), "thumbs/ holds files the renderer did not draw"
+    assert on_disk == set(manifest), "thumbs/ and MANIFEST disagree"
     for name, digest in manifest.items():
         got = hashlib.sha256((DEMO / "thumbs" / name).read_bytes()).hexdigest()
-        assert got == digest, f"{name} was changed by hand; redraw with build_demo.py --render-thumbs"
+        assert got == digest, f"{name} does not match MANIFEST"
     data = json.loads((DEMO / "demo.json").read_text())
     assert {a["thumb"] for a in data["ads"]} <= set(manifest)
     assert "images" in data["note"]
