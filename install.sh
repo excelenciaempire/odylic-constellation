@@ -5,7 +5,7 @@
 #
 # Clones (or updates) the app in ~/odylic-constellation, creates a Python
 # virtual environment, builds the web app and, on macOS, adds
-# "Odylic Constellation" to ~/Applications. Nothing secret is created: you
+# "Odylic Constellation" to Applications. Nothing secret is created: you
 # connect your Meta account inside the app.
 set -euo pipefail
 
@@ -99,7 +99,8 @@ step "Adding the launcher"
 scripts/make-app.sh || say "Could not create the launcher. You can still run: $INSTALL_DIR/start.sh"
 
 if [ "$WAS_RUNNING" = "1" ]; then
-  LAUNCH="$HOME/Applications/Odylic Constellation.app/Contents/MacOS/launch"
+  LAUNCH="/Applications/Odylic Constellation.app/Contents/MacOS/launch"
+  [ -x "$LAUNCH" ] || LAUNCH="$HOME/Applications/Odylic Constellation.app/Contents/MacOS/launch"
   [ -x "$LAUNCH" ] || LAUNCH="$INSTALL_DIR/.run/launch.sh"
   if [ -x "$LAUNCH" ] && "$LAUNCH" --no-open >/dev/null 2>&1; then
     say "Restarted the app server with the new version. Reload the page if it is open."
@@ -110,7 +111,7 @@ fi
 
 printf '\n  Done.\n\n'
 if [ "$(uname -s)" = "Darwin" ]; then
-  say "Open \"Odylic Constellation\" from your Applications folder or Spotlight,"
+  say "Open \"Odylic Constellation\" from Applications (in Finder's sidebar) or Spotlight,"
   say "or run: $INSTALL_DIR/start.sh"
 else
   say "Run: $INSTALL_DIR/start.sh"

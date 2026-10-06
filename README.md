@@ -111,7 +111,8 @@ cd ~/odylic-constellation && .venv/bin/python -m api.healthcheck http://127.0.0.
 
 (It only stops a server it can prove is this app, never anything else on that port.)
 
-Then delete `~/odylic-constellation`, `~/Applications/Odylic Constellation.app`,
+Then delete `~/odylic-constellation`, `/Applications/Odylic Constellation.app` (or
+`~/Applications/Odylic Constellation.app` on an account that can't write to Applications),
 `~/Library/Application Support/Odylic Constellation` and `~/Library/Logs/Odylic Constellation`.
 
 ## Run it by hand

@@ -65,7 +65,16 @@ EOF
 
 case "$(uname -s)" in
   Darwin)
-    APP="$HOME/Applications/Odylic Constellation.app"
+    # The main Applications folder when this account can write it (admin accounts can), so it shows in
+    # Finder's sidebar and in Spotlight; otherwise ~/Applications. A copy left in the other spot by an
+    # earlier install is removed, so there is only ever one.
+    if [ -w /Applications ]; then
+      APP="/Applications/Odylic Constellation.app"
+      rm -rf "$HOME/Applications/Odylic Constellation.app"
+    else
+      APP="$HOME/Applications/Odylic Constellation.app"
+    fi
+    mkdir -p "$(dirname "$APP")"
     rm -rf "$APP"
     mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
     launch_script open 'osascript -e "display dialog \"$1\" with title \"Odylic Constellation\" buttons {\"OK\"} default button 1 with icon caution" >/dev/null 2>&1 || echo "$1" >&2' \
@@ -111,6 +120,7 @@ PLIST
     touch "$APP"
     /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
       -f "$APP" >/dev/null 2>&1 || true
+    mdimport "$APP" >/dev/null 2>&1 || true   # Spotlight finds it right away
     echo "  Launcher ready: $APP"
     ;;
   Linux)
