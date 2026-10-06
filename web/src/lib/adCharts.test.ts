@@ -54,9 +54,9 @@ describe('chart requests that reach Meta', () => {
 })
 
 describe('thumbUrl', () => {
-  it('carries the creative version for a connected account only', () => {
+  it('carries the creative version for a connected account, the demo set version for the demo', () => {
     expect(thumbUrl('12', false, 'abc123')).toBe('/api/thumb/12?v=abc123')
-    expect(thumbUrl('12', true, 'abc123')).toBe('/api/thumb/12?demo=1')
+    expect(thumbUrl('12', true, 'abc123')).toBe('/api/thumb/12?demo=1&v=d2')
     expect(thumbUrl('12', false)).toBe('/api/thumb/12')
   })
 })
