@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" class="ody-scope ody-night ody-ground-dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Appearance before the first paint (no flash): Dark unless Light or System was picked. Mirrors
+         src/lib/colorScheme.ts: <html> carries the Odylic look's scope classes for the shown theme. -->
+    <script>try{var s=localStorage.getItem('fv.theme');if(s!=='light'&&s!=='system')s='dark';var d=s==='light'||(s==='system'&&window.matchMedia&&!window.matchMedia('(prefers-color-scheme: dark)').matches),h=document.documentElement;if(s==='system')delete h.dataset.theme;else h.dataset.theme=s;h.className='ody-scope '+(d?'ody-day ody-ground-light':'ody-night ody-ground-dark')}catch(e){}</script>
+    <style>html{background:#3B3335;color-scheme:dark}html.ody-day{background:#DFD6CC;color-scheme:light}</style>
+    <title>Odylic Constellation</title>
+    <meta name="description" content="Every Meta ad in one account, laid out in 3D by where Meta actually delivers it. Runs on your Mac." />
+    <meta name="application-name" content="Odylic Constellation" />
+    <meta name="apple-mobile-web-app-title" content="Constellation" />
+    <meta name="theme-color" content="#1E1D1C" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <!-- Fonts, loaded from their own hosts (never bundled): Source Serif 4 (SIL Open Font License, Google Fonts) for
+         headings, General Sans (ITF Free Font License, which allows use but not redistribution, so Fontshare serves
+         it) for the interface. They load without blocking the page (media="print", switched on once loaded), so a
+         slow or silent font host never holds the app blank; until they land, and offline, the stacks in odylic.css
+         fall back to Georgia and Helvetica Neue. The requests carry no referrer, no token and no ad data. -->
+    <meta name="referrer" content="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet" />
+      <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500&display=swap" rel="stylesheet" />
+    </noscript>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

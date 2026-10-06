@@ -1,0 +1,352 @@
+/*
+ * The Odylic look, ported from Atelier (its odylic.css as shipped Oct 5 2026,
+ * commit cff7de2) so Constellation reads as the same product: the fan ground of Creative Analysis, liquid glass on
+ * every surface, cream / charcoal ink with rust only as a small accent, serif headings, pills for every button.
+ *
+ * Scope: <html> carries `ody-scope` and `ody-night ody-ground-dark` or `ody-day ody-ground-light`
+ * (lib/colorScheme.ts, and index.html before the first paint), so portals carry the look too. Unlayered on purpose:
+ * these rules beat Tailwind's layered utilities without !important.
+ *
+ * Differences from Atelier, all for speed over a canvas that animates at up to 120 fps: no backdrop filter anywhere.
+ * Surfaces on the ground get their frost and rim from the glass field (glassField.ts); floating ones (menus, the
+ * drawer, the overlays over the canvas) paint the same frost on themselves (frost.ts, `--gf-face`).
+ */
+
+:root {
+  --ody-font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --ody-font-sans: "General Sans", "Helvetica Neue", Arial, sans-serif;
+  --ody-ink: #1E1D1C;
+  --ody-paper: #FFFCF2;
+  --ody-rust: #B6410E;
+  --ody-shadow-modal: 0 30px 80px -10px rgba(0, 0, 0, .45);
+}
+
+/* ---------- family ink ---------- */
+.ody-ground-dark {
+  --fg: #FFFCF2; --fg2: rgba(255,252,242,.8); --fg3: rgba(255,252,242,.68); --fg4: rgba(255,252,242,.46);
+  --hair: rgba(255,252,242,.16); --hair2: rgba(255,252,242,.08); --base-line: rgba(255,252,242,.34);
+  --accent: #E0703F;
+  --glass-tint: rgba(255,252,242,.0858);
+  --glass-edge: rgba(255,255,255,.22);
+  --glass-light: .05;
+  color: var(--fg);
+}
+.ody-ground-light {
+  --fg: #1E1D1C; --fg2: rgba(30,29,28,.8); --fg3: rgba(30,29,28,.72); --fg4: rgba(30,29,28,.52);
+  --hair: rgba(30,29,28,.13); --hair2: rgba(30,29,28,.07); --base-line: rgba(30,29,28,.34);
+  --accent: #B6410E;
+  --glass-tint: rgba(255,252,242,.5);
+  --glass-edge: rgba(255,255,255,.9);
+  --glass-light: .2;
+  color: var(--fg);
+}
+/* the fan's base colour (its own bottom tone, so the ground fades into it without a seam) and the fog that keeps
+   small labels at 4.5:1 where its bright folds run behind a panel */
+.ody-scope.ody-night { --ody-base: #3B3335; --glass-fog: rgba(20,19,18,.42); --fr-base: #262422; }
+.ody-scope.ody-day { --ody-base: #DFD6CC; --glass-fog: rgba(255,252,242,0); --fr-base: #FAF7F1; }
+
+/* ---------- the ground ---------- */
+/* the host clips sideways only and never becomes a scroll container (its display is the caller's: a flex column) */
+.ody-ground-host { position: relative; isolation: isolate; overflow-x: clip; overflow-y: visible; background-color: var(--ody-base); }
+.ody-ground { position: absolute; left: 0; right: 0; top: 0; z-index: -1; pointer-events: none; }
+/* where a page outgrows the ground (a long onboarding step), the ground fades into the base colour */
+.ody-ground-host[data-cut] > .ody-ground {
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 280px), transparent);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 280px), transparent);
+}
+.ody-bg-fan {
+  background-color: #3B3335;
+  /* the header shade: holds through the top bar, then fades over the top of the space */
+  --ody-scrim: linear-gradient(180deg, rgba(22,20,19,.62) 0, rgba(22,20,19,.58) 100px, rgba(22,20,19,.36) 230px, rgba(22,20,19,0) 380px);
+  --ody-scrim-h: 380px;
+  /* the window never scrolls in the space view, so the render sits a third of the way down: the calm dark top
+     holds the header and the fan's folds run behind the space panel */
+  --ody-gpos: center 30%;
+}
+.ody-bg-fan::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: url("./grounds/fan.avif");
+  background-repeat: no-repeat; background-size: cover; background-position: var(--ody-gpos, center top);
+}
+.ody-bg-fan::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: var(--ody-scrim) top / 100% var(--ody-scrim-h, 380px) no-repeat;
+}
+.ody-day .ody-bg-fan { background-color: #DFD6CC; --ody-scrim: linear-gradient(transparent, transparent); }
+.ody-day .ody-bg-fan::before { background-image: url("./grounds/fan-day.avif"); }
+/* phones: the header wraps to two rows, so the night shade runs deeper */
+@media (max-width: 600px) {
+  .ody-night .ody-bg-fan {
+    --ody-scrim: linear-gradient(180deg, rgba(22,20,19,.70) 0, rgba(22,20,19,.64) 100px, rgba(22,20,19,.58) 260px, rgba(22,20,19,.46) 400px, rgba(22,20,19,0) 560px);
+    --ody-scrim-h: 560px;
+  }
+}
+
+/* ---------- the app's own tokens, re-pointed at the ground's ink ---------- */
+.ody-scope {
+  font-family: var(--ody-font-sans);
+  --font-display: var(--ody-font-serif);
+  --color-text-primary: var(--fg);
+  --color-text-secondary: var(--fg2);
+  --color-text-muted: var(--fg3);
+  --color-text-faint: var(--fg4);
+  --color-line: var(--hair);
+  --color-line-strong: color-mix(in srgb, var(--fg) 26%, transparent);
+  --color-line-hover: color-mix(in srgb, var(--fg) 40%, transparent);
+  --color-surface-raised: transparent;
+  --color-surface-control: transparent;
+  --color-surface-recessed: color-mix(in srgb, var(--fg) 6%, transparent);
+  --color-hover: color-mix(in srgb, var(--fg) 7%, transparent);
+  --color-chart-grid: var(--hair2);
+  --color-accent-ink: var(--accent);
+  /* "applied" and "selected" are a neutral ink tint; rust stays for focus rings and small marks */
+  --color-select: color-mix(in srgb, var(--fg) 7%, transparent);
+  --color-select-line: color-mix(in srgb, var(--fg) 40%, transparent);
+  --shadow-control: none;
+  --shadow-container: none;
+  --shadow-popover: 0 16px 40px -14px light-dark(rgba(30,29,28,.26), rgba(0,0,0,.62)), 0 2px 6px light-dark(rgba(30,29,28,.05), rgba(0,0,0,.28));
+  --shadow-modal: 0 0 0 1px var(--hair), var(--ody-shadow-modal);
+  /* the date picker: range ends in the ground's ink with the menu colour as text */
+  --ody-date-edge: var(--fg);
+  --ody-date-edge-ink: var(--fr-base);
+
+  /* liquid glass (Peter, Oct 2 2026: "ideal liquid glass": a flat, near clear tint with one even hairline; the bend
+     and the colour split at the rim do the work) */
+  --lg-tint: rgba(255, 252, 242, .05);
+  --lg-tint-hover: rgba(255, 252, 242, .09);
+  --lg-tint-on: rgba(255, 252, 242, .17);
+  --lg-hair: inset 0 0 0 1px rgba(255, 255, 255, .15);
+  --lg-hair-hover: inset 0 0 0 1px rgba(255, 255, 255, .26);
+  --lg-hair-on: inset 0 0 0 1px rgba(255, 255, 255, .42);
+  --lg-edge: inset 0 0 0 1px rgba(255, 255, 255, .2);
+  /* menus, popovers and the overlays over the canvas: a deeper tint so their small text keeps 4.5:1 */
+  --lg-menu: rgba(30, 28, 26, .68);
+  /* the drawer: thick glass */
+  --lg-sheet: rgba(30, 28, 26, .84);
+  /* the 1px rim light: brighter on the lit top left, quieter round the far side */
+  --lg-rim: linear-gradient(155deg, rgba(255,255,255,.34), rgba(255,255,255,.12) 32%, rgba(255,255,255,.08) 64%, rgba(255,255,255,.18));
+}
+.ody-scope.ody-ground-dark {
+  color-scheme: dark;
+  --color-success: #B5E3BD;
+  --color-warning: #EBC88B;
+  --color-error: #F5B3A6;
+  --color-surface-overlay: #262422;
+  /* rust as small text (links) on dark glass: a lighter ember, 5:1 where a fold brightens the glass (the ember
+     #E0703F measured 3.7:1 there at 12.5px) */
+  --color-accent-ink: #F09A73;
+}
+.ody-scope.ody-ground-light {
+  color-scheme: light;
+  --color-success: #275A2F;
+  --color-warning: #5E3A08;
+  --color-error: #8A2A1C;
+  --color-surface-overlay: #FFFCF2;
+  /* rust as text on light grounds: the deep step (#B6410E reads under 4.5:1 at 12px) */
+  --color-accent-ink: #973814;
+}
+/* light glass: a clear white tint and a bright inner hairline over a faint ink line, so an edge still reads where
+   the glass sits on paper */
+.ody-scope.ody-day {
+  --lg-tint: rgba(255, 255, 255, .3);
+  --lg-tint-hover: rgba(255, 255, 255, .48);
+  --lg-tint-on: rgba(255, 255, 255, .78);
+  --lg-hair: inset 0 0 0 1px rgba(255, 255, 255, .7), 0 0 0 1px rgba(30, 29, 28, .07);
+  --lg-hair-hover: inset 0 0 0 1px rgba(255, 255, 255, .9), 0 0 0 1px rgba(30, 29, 28, .12);
+  --lg-hair-on: inset 0 0 0 1px #FFFFFF, 0 0 0 1px rgba(30, 29, 28, .16);
+  --lg-edge: inset 0 0 0 1px rgba(255, 255, 255, .7), 0 0 0 1px rgba(30, 29, 28, .06);
+  --lg-menu: rgba(251, 248, 242, .82);
+  --lg-sheet: rgba(250, 247, 241, .9);
+  --lg-rim: linear-gradient(155deg, rgba(255,255,255,.98), rgba(255,255,255,.7) 40%, rgba(255,255,255,.55) 70%, rgba(255,255,255,.85));
+  --glass-tint: rgba(255, 255, 255, .42);
+  --glass-edge: rgba(255, 255, 255, .95);
+  --glass-light: .3;
+}
+
+/* ---------- type: the serif at 400 only, sentence case, no caps eyebrows, a 12px floor ---------- */
+.ody-scope .font-display { font-family: var(--ody-font-serif); font-weight: 400; letter-spacing: 0; }
+.ody-scope .uppercase { text-transform: none; letter-spacing: .01em; }
+.ody-scope .font-medium, .ody-scope .font-semibold { font-weight: 500; }
+.ody-scope :is(.text-\[9px\], .text-\[9\.5px\], .text-\[10px\], .text-\[10\.5px\], .text-\[11px\]) { font-size: 12px; }
+.ody-scope .ody-label { font-size: 12px; text-transform: none; letter-spacing: .01em; color: var(--fg3); }
+.ody-scope .ody-heading { font-family: var(--ody-font-serif); font-weight: 400; font-size: 18px; line-height: 1.2; letter-spacing: 0; }
+
+/* radii: 6 (buttons, inner boxes), 8 (panels and menus), pill */
+.ody-scope :is(.rounded-xl, .rounded-2xl) { border-radius: 8px; }
+
+/* ---------- panels on the ground: frost and rim from the glass field; here the tint, fog, corner light and rim light ---------- */
+.ody-scope :is(.ody-glass, .atelier-section) {
+  position: relative; isolation: isolate;
+  border: 0; border-radius: 8px; box-shadow: none;
+  background-color: var(--glass-tint);
+  background-image: linear-gradient(var(--glass-fog), var(--glass-fog));
+}
+.ody-scope :is(.ody-glass, .atelier-section)::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: linear-gradient(225deg, rgba(255,255,255,var(--glass-light)) 0%, rgba(255,255,255,0) 50%);
+}
+.ody-scope :is(.ody-glass, .atelier-section)::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 30;
+  padding: 1px; background: var(--lg-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* panels by day: white glass a step brighter than the cream paper and a soft daylight shadow, so they lift */
+.ody-scope.ody-day :is(.ody-glass, .atelier-section) { box-shadow: 0 1px 1px rgba(30, 29, 28, .03), 0 14px 34px -20px rgba(30, 29, 28, .3); }
+
+/* ---------- the glass field's layers (glassField.ts): behind the content, painted once ---------- */
+.ody-gf { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; overflow: hidden; }
+.ody-gf-l { position: absolute; overflow: hidden; contain: strict; }
+.ody-gf-l > i { position: absolute; inset: 0; display: block; background-repeat: no-repeat; }
+.ody-gf-lens > canvas { display: block; }
+
+/* ---------- small glass: pills, triggers, chips, tags, icon buttons, secondary buttons, fields ---------- */
+.ody-scope :is(.ody-pill, button.rounded-full[aria-haspopup], button.glass, [data-seg="pill"] [role="tab"], .ody-chip,
+  .ody-tag, .ody-badge, .ody-btn-icon, .ody-btn-secondary, .ody-field) {
+  border-color: transparent;
+  background: var(--lg-tint);
+  box-shadow: var(--lg-hair);
+}
+.ody-scope :is(.ody-pill, button.rounded-full[aria-haspopup], button.glass, [data-seg="pill"] [role="tab"], .ody-chip,
+  .ody-btn-icon, .ody-btn-secondary):not(:disabled):hover {
+  color: var(--fg); background: var(--lg-tint-hover); box-shadow: var(--lg-hair-hover);
+}
+/* applied and open: brighter clear glass with a firmer edge */
+.ody-scope :is(.ody-pill.ody-pill-on, button.rounded-full[aria-haspopup][aria-expanded="true"], .ody-chip.ody-chip-on, .ody-chip.ody-chip-on:hover) {
+  color: var(--fg); background: var(--lg-tint-on); box-shadow: var(--lg-hair-on);
+}
+/* filter chips and <Select> / Arrange triggers: 28px at 13px (24px at 12px when compact); the key in ink-2, the
+   value in ink, the chevron at 60% */
+.ody-scope :is(.ody-pill, button.rounded-full[aria-haspopup="listbox"], button.rounded-full[aria-haspopup="dialog"]) { font-size: 13px; line-height: 18px; gap: 6px; }
+.ody-scope .ody-pill { color: var(--fg2); }
+.ody-scope button.rounded-full[aria-haspopup] { color: var(--fg); }
+.ody-scope :is(.ody-pill, button.rounded-full[aria-haspopup="listbox"], button.rounded-full[aria-haspopup="dialog"]).h-7 { height: 28px; padding-left: 12px; padding-right: 12px; }
+.ody-scope :is(.ody-pill, button.rounded-full[aria-haspopup="listbox"]).h-6 { height: 24px; padding-left: 10px; padding-right: 10px; font-size: 12.5px; }
+.ody-scope :is(.ody-pill, button.rounded-full[aria-haspopup]) .text-text-muted { color: var(--fg2); }
+/* tags (Demo Brand) read as static glass: full ink, no hover */
+.ody-scope :is(.ody-tag, .ody-badge) { color: var(--fg); font-weight: 400; }
+
+/* icon-only actions: 6px corners, a hairline, the icon in ink-2 */
+.ody-scope .ody-btn-icon { border-radius: 6px; color: var(--fg2); }
+
+/* BTN_PRIMARY / BTN_SECONDARY are the app's pills (Atelier, Peter Oct 5 2026: "it should just match our other
+   buttons"): 28px, fully round, 13px regular; the secondary a plain pill, the primary the selected one */
+.ody-scope button:is(.ody-btn-primary, .ody-btn-secondary) {
+  height: 28px; padding: 0 12px; border-radius: 999px; border: 0; font-size: 13px; line-height: 18px; font-weight: 400; gap: 6px;
+  background-image: none; transition: background-color .2s ease, box-shadow .2s ease, color .2s ease, opacity .2s ease;
+}
+.ody-scope button.ody-btn-secondary { color: var(--fg); background-color: var(--lg-tint); box-shadow: var(--lg-hair); }
+.ody-scope button.ody-btn-secondary:not(:disabled):hover { color: var(--fg); background-color: var(--lg-tint-hover); box-shadow: var(--lg-hair-hover); }
+.ody-scope:is(.ody-day, .ody-night) button.ody-btn-primary { color: var(--fg); background: var(--lg-tint-on); box-shadow: var(--lg-hair-on); }
+.ody-scope:is(.ody-day, .ody-night) button.ody-btn-primary:not(:disabled):hover { color: var(--fg); background: var(--lg-tint-on); box-shadow: var(--lg-hair-on), 0 0 0 1px var(--hair); }
+.ody-scope button:is(.ody-btn-primary, .ody-btn-secondary):disabled { opacity: .45; cursor: not-allowed; }
+
+/* Segmented: choice chips, the selected one brighter glass; underline tabs in ink with a rust underline */
+.ody-scope [data-seg="pill"] { background: transparent; box-shadow: none; padding: 0; gap: 6px; }
+.ody-scope [data-seg="pill"] [role="tab"] {
+  height: 28px; padding: 0 12px; border-radius: 999px; font-size: 13px; line-height: 18px; font-weight: 400;
+  color: var(--fg2); transition: box-shadow .2s ease, color .2s ease, background-color .2s ease;
+}
+.ody-scope [data-seg="pill"] [role="tab"][aria-selected="true"] { color: var(--fg); background: var(--lg-tint-on); box-shadow: var(--lg-hair-on); }
+/* icon-only segments (Segmented size="icon" renders them with p-1.5): round 28px chips */
+.ody-scope [data-seg="pill"] [role="tab"].p-1\.5 { width: 28px; padding: 0; justify-content: center; }
+.ody-scope [data-seg="underline"] { border-color: var(--hair2); }
+.ody-scope [data-seg="underline"] [role="tab"] { font-size: 13px; font-weight: 400; color: var(--fg3); }
+.ody-scope [data-seg="underline"] [role="tab"]:hover { color: var(--fg); }
+.ody-scope [data-seg="underline"] [role="tab"][aria-selected="true"] { color: var(--fg); border-color: var(--accent); }
+
+/* ---------- floating glass (frost.ts): menus, popovers, the date picker, the drawer, the overlays over the canvas ----------
+   Thick glass: the ground's frost painted on the element itself under a deeper tint, one hairline, the popover
+   shadow. Nothing is blurred live, so nothing behind it is redrawn while the canvas animates. */
+.ody-scope :where(.ody-frost, .ody-overlay, .ody-menu, [data-atelier-popover], .ody-modal, .fv-drawer, .shadow-popover:not(img)) {
+  border-color: transparent;
+  background: linear-gradient(var(--fr-tint, var(--lg-menu)), var(--fr-tint, var(--lg-menu))), var(--gf-face, linear-gradient(var(--fr-base), var(--fr-base)));
+  background-color: var(--fr-base);
+  box-shadow: var(--lg-hair), var(--shadow-popover);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.ody-scope :where([data-atelier-popover], .ody-menu, .shadow-popover:not(img)) { border-radius: 8px; }
+/* Menus one layer deep only (Atelier, Peter Oct 2 2026: "sub menus more than one layer deep don't need to be
+   glassy"): a menu opened from inside another menu or a dialog is solid. */
+.ody-scope .ody-portal ~ .ody-portal:is([data-atelier-popover], .shadow-popover),
+.ody-scope :is([data-atelier-popover], .shadow-popover, [role="dialog"], .ody-menu) :is([data-atelier-popover], .shadow-popover:not(img)) {
+  background: var(--fr-base);
+}
+/* portals: menus and dialogs rendered into <body> (their raised surface is the menu's own colour) */
+.ody-portal { --color-surface-raised: var(--color-surface-overlay); }
+/* the drawer is thick glass with the modal shadow */
+.ody-scope .fv-drawer { --fr-tint: var(--lg-sheet); box-shadow: 0 0 0 1px var(--hair), var(--ody-shadow-modal); }
+
+/* ---------- fields ---------- */
+.ody-scope :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea).border,
+.ody-scope .ody-field {
+  background-color: var(--color-surface-recessed); border-color: var(--hair); border-radius: 6px; color: var(--fg);
+}
+.ody-scope :is(input, textarea)::placeholder { color: var(--fg3); opacity: 1; }
+.ody-scope :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select):focus-visible {
+  outline: none; border-color: color-mix(in srgb, var(--fg) 70%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 70%, transparent);
+}
+/* a bare field inside a bordered box (the searches in menus): the box takes the focus edge */
+.ody-scope [class~="border"] > :is(input:not([type="checkbox"]):not([type="radio"]), textarea):not([class~="border"]):focus-visible { border-color: transparent; box-shadow: none; }
+.ody-scope [class~="border"]:has(> :is(input, textarea):not([class~="border"]):focus-visible) {
+  border-color: color-mix(in srgb, var(--fg) 70%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 70%, transparent);
+}
+/* native selects (the post picker style): a glass pill */
+.ody-scope .atelier-select { background-color: var(--lg-tint); border-color: transparent; box-shadow: var(--lg-hair); color: var(--fg); font-size: 12px; }
+
+/* checkboxes: a small glass box, ink when ticked, the check in the ground's base colour */
+.ody-scope input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none; margin: 0; flex: none;
+  width: 16px; height: 16px; border-radius: 4px; display: inline-grid; place-content: center; cursor: pointer;
+  background: var(--lg-tint); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 46%, transparent);
+  transition: background-color .15s ease, box-shadow .15s ease;
+}
+.ody-scope input[type="checkbox"]::before {
+  content: ""; width: 10px; height: 10px; background: var(--ody-base); transform: scale(0); transition: transform .12s ease;
+  clip-path: polygon(14% 52%, 0 66%, 38% 100%, 100% 22%, 86% 8%, 38% 72%);
+}
+.ody-scope input[type="checkbox"]:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 70%, transparent); }
+.ody-scope input[type="checkbox"]:checked { background: var(--fg); box-shadow: none; }
+.ody-scope input[type="checkbox"]:checked::before { transform: scale(1); }
+
+/* ---------- focus: one rust ring everywhere (the lighter ember on dark grounds clears 3:1) ---------- */
+.ody-scope :focus-visible { outline: 2px solid #B6410E; outline-offset: 3px; }
+.ody-scope.ody-ground-dark :focus-visible { outline-color: #E0703F; }
+
+/* ---------- the date picker ---------- */
+.ody-scope [role="dialog"][aria-label="Date range"] { --color-accent-ink: var(--fg); border-radius: 8px; }
+@media (max-width: 640px) {
+  .ody-scope [role="dialog"][aria-label="Date range"] { width: calc(100vw - 24px) !important; max-height: calc(100dvh - 72px); overflow-y: auto; }
+  .ody-scope [role="dialog"][aria-label="Date range"] > .flex { flex-direction: column; }
+  .ody-scope [role="dialog"][aria-label="Date range"] > .flex > :first-child {
+    width: auto; max-height: none !important; display: flex; flex-wrap: wrap; gap: 4px; padding: 10px 10px 6px;
+    border-right: 0; border-bottom: 1px solid var(--hair);
+  }
+  .ody-scope [role="dialog"][aria-label="Date range"] > .flex > :first-child > button {
+    width: auto; padding: 4px 10px; border-radius: 999px; box-shadow: var(--lg-hair);
+  }
+  .ody-scope [role="dialog"][aria-label="Date range"] > .flex > :first-child > button svg { display: none; }
+  .ody-scope [role="dialog"][aria-label="Date range"] > .flex > :first-child > button[style] { box-shadow: var(--lg-hair-on); background: var(--lg-tint-on); }
+  .ody-scope [role="dialog"][aria-label="Date range"] .flex.gap-4.justify-center { flex-direction: column; align-items: center; }
+}
+
+/* ---------- hard-coded white fills (image boxes) become recessed boxes in the ground's ink ---------- */
+.ody-scope :is(.bg-white, .bg-white\/60, .bg-white\/70, .bg-white\/80):not(.w-1) { background-color: var(--color-surface-recessed); }
+
+/* ---------- touch screens: pills and icon buttons a fingertip can hit (36px), without changing what a mouse sees ---------- */
+@media (pointer: coarse) {
+  .ody-scope :is(button.h-7, button.h-6, .ody-pill, [data-seg="pill"] [role="tab"], .ody-chip, .ody-btn-primary, .ody-btn-secondary) { min-height: 36px; }
+  .ody-scope .ody-btn-icon { min-width: 36px; min-height: 36px; display: inline-flex; align-items: center; justify-content: center; }
+}
+
+/* ---------- reduced transparency: glass turns near opaque ---------- */
+@media (prefers-reduced-transparency: reduce) {
+  .ody-scope.ody-night :is(.ody-glass, .atelier-section) { background-color: rgba(38,36,34,.94); background-image: none; }
+  .ody-scope.ody-day :is(.ody-glass, .atelier-section) { background-color: rgba(255,252,242,.96); background-image: none; }
+  .ody-scope :is(.ody-frost, .ody-overlay, .ody-menu, [data-atelier-popover], .ody-modal, .fv-drawer, .shadow-popover:not(img)) { background: var(--fr-base); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ody-scope * { scroll-behavior: auto; }
+}

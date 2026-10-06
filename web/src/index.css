@@ -1,0 +1,374 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Raw scales (DESIGN_BRIEF.md "Palette"). Mirrored in src/ui/theme.ts. ── */
+  /* Warm neutral greys: lines, text, icons and quiet fills. */
+  --color-neutral-50: #f9f8f6;
+  --color-neutral-100: #f4f2ee;
+  --color-neutral-200: #ebe8e2;
+  --color-neutral-300: #e2ddd5;
+  --color-neutral-400: #d3cdc4;
+  --color-neutral-500: #a8a196;
+  --color-neutral-600: #6b655e;
+  --color-neutral-700: #4b4640;
+  --color-neutral-800: #33302b;
+  --color-neutral-900: #211e1b;
+
+  /* Rust, the one accent, in ten steps around the brand #B7410E (600):
+     tints for hover, selection and chips; 600 for the primary action;
+     700 to 900 for text on tints. */
+  --color-rust-50: #fef4f0;
+  --color-rust-100: #ffe7dd;
+  --color-rust-200: #fdcdba;
+  --color-rust-300: #f6a88d;
+  --color-rust-400: #e67d59;
+  --color-rust-500: #d25b31;
+  --color-rust-600: #b7410e;
+  --color-rust-700: #973814;
+  --color-rust-800: #772d17;
+  --color-rust-900: #561f10;
+
+  /* ── Semantic, mode-aware tokens: light-dark(light, dark). <html> carries
+     color-scheme "light dark" (System) or one of them when the user picks
+     Light or Dark in App Settings (html[data-theme], src/ui/colorScheme.ts).
+     Every content ink passes WCAG AA on every surface in both modes. ── */
+  --color-surface: light-dark(#faf9f7, #181715);          /* canvas */
+  --color-surface-raised: light-dark(#ffffff, #211f1c);   /* cards, panels, tiles */
+  --color-surface-recessed: light-dark(#f6f5f2, #1b1a17); /* inputs, header bands, tracks */
+  --color-surface-overlay: light-dark(#ffffff, #2a2723);  /* menus, popovers, modals */
+  --color-surface-control: light-dark(#ffffff, #282521);  /* pills, dropdown triggers */
+  --color-hover: light-dark(rgba(33, 30, 27, 0.045), rgba(255, 255, 255, 0.06));
+
+  /* Thin grey lines: quiet on passive containers, stronger on controls. */
+  --color-line: light-dark(#e7e3dd, #302c28);
+  --color-line-strong: light-dark(#d6d0c7, #45403a);
+  --color-line-hover: light-dark(#b9b2a7, #5d574f);
+
+  /* Ink scale. */
+  --color-text-primary: light-dark(#211e1b, #f0ece5);
+  --color-text-secondary: light-dark(#4b4640, #c9c2b8);
+  --color-text-muted: light-dark(#6b655e, #a0998f);   /* labels, eyebrows, ticks */
+  --color-text-faint: light-dark(#a8a196, #6c665e);   /* placeholders, disabled only */
+
+  /* Accent roles. Selection is ink on a rust tint; focus is a rust ring. */
+  --color-on-accent: #ffffff;                                /* text on rust-600 */
+  --color-accent-ink: light-dark(#973814, #f6a88d);          /* rust text: links, labels */
+  --color-select: light-dark(#fef4f0, rgba(183, 65, 14, 0.18));
+  --color-select-line: light-dark(#fdcdba, rgba(230, 125, 89, 0.45));
+  --color-focus: light-dark(#d25b31, #e67d59);
+  --color-chart-grid: light-dark(rgba(33, 30, 27, 0.07), rgba(255, 255, 255, 0.08));
+
+  /* Indicators. They are read as text too (chips, delta pills, notes), so
+     the light values are the deeper green and amber that keep 4.5:1 on their
+     own 10% tint over the raised surface (#2d8a4e and #c47a15 were 3.8 and
+     3.1). The -solid fills below keep the brighter dot colours. */
+  --color-success: light-dark(#267a44, #5cb985);
+  --color-warning: light-dark(#9a5e0d, #e0a24a);
+  --color-error: light-dark(#c43a31, #ec7a6f);
+  /* Solid indicator fills under white text (dots, badges): the same in both
+     modes, so white text keeps its contrast. */
+  --color-success-solid: #2d8a4e;
+  --color-warning-solid: #c47a15;
+  --color-error-solid: #c43a31;
+  /* Buttons with white labels need AA (4.5:1) at 11 to 12px: the solid
+     green is 4.3:1 and the solid amber 3.4:1, so filled action buttons use
+     these deeper steps (white text 5.3:1 and 5.2:1). */
+  --color-success-strong: #267a44;
+  --color-warning-strong: #9c5f0e;
+  /* Palette colours used as text, lifted for dark. */
+  --color-teal-ink: light-dark(#216868, #5bbcbc);
+  --color-plum-ink: light-dark(#855390, #c79ad3);
+  /* Badges and scrims laid over images: the same in both modes. */
+  --color-media-scrim: rgba(0, 0, 0, 0.55);
+  --color-on-media: #ffffff;
+  /* Brand favicons and logos are drawn for light pages (many are dark ink on
+     transparent): they sit on white in both modes. */
+  --color-logo-plate: #ffffff;
+
+  /* App chrome: the ink rail is the one fixed dark anchor in both modes. */
+  --color-rail: light-dark(#211e1b, #0f0e0d);
+  --color-rail-line: light-dark(#211e1b, #0f0e0d);
+  --color-rail-ink: #b8b1a7;
+  --color-rail-ink-hover: #ffffff;
+  --color-rail-hover: rgba(255, 255, 255, 0.08);
+  --color-rail-active: #f4f2ee;
+  --color-rail-active-ink: #211e1b;
+  --color-rail-divider: rgba(255, 255, 255, 0.12);
+  --color-strip: light-dark(#ffffff, #181715);
+  --color-strip-line: light-dark(#e7e3dd, #2a2723);
+
+  /* Tailwind's white and black follow the mode until every component reads
+     the semantic tokens: white is the raised surface, black is the ink, so
+     bg-white cards and border-black/[..] hairlines turn over in dark mode. */
+  --color-white: light-dark(#ffffff, #211f1c);
+  --color-black: light-dark(#000000, #f0ece5);
+
+  /* Shadows: light ones on containers, a tiny one on controls, deeper ones
+     only for things that float. */
+  --shadow-container: 0 1px 2px light-dark(rgba(33, 30, 27, 0.05), rgba(0, 0, 0, 0.32)), 0 1px 4px light-dark(rgba(33, 30, 27, 0.04), rgba(0, 0, 0, 0.2));
+  --shadow-control: 0 1px 1.5px light-dark(rgba(33, 30, 27, 0.07), rgba(0, 0, 0, 0.4));
+  --shadow-popover: 0 10px 28px -8px light-dark(rgba(33, 30, 27, 0.22), rgba(0, 0, 0, 0.6)), 0 2px 6px light-dark(rgba(33, 30, 27, 0.06), rgba(0, 0, 0, 0.3));
+  --shadow-modal: 0 28px 70px -24px light-dark(rgba(33, 30, 27, 0.3), rgba(0, 0, 0, 0.7)), 0 2px 8px -2px light-dark(rgba(33, 30, 27, 0.06), rgba(0, 0, 0, 0.4));
+
+  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', Times, serif;
+
+  /* Legacy names still read by plain CSS (chat-md, sliders, rings). */
+  --color-accent-orange: #e87a2d;
+  --color-accent-orange-deep: #b7410e;
+  --color-accent-orange-text: #b55719;
+  --color-teal: #2d8a8a;
+  --color-teal-deep: #216868;
+}
+
+/* Light, dark or follow the system. With no data-theme the page follows the
+   OS (pure CSS, so no flash); App Settings can pin Light or Dark. */
+html { color-scheme: light dark; }
+html[data-theme="light"] { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+
+/* The Odylic look (ui/odylic/odylic.css) sets the inks, the fonts and the ground; the body takes the ground's base
+   colour so nothing light flashes past the ground's edge. */
+body {
+  margin: 0;
+  font-family: var(--ody-font-sans, 'Helvetica Neue', Arial, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--ody-base, var(--color-surface));
+  color: var(--color-text-primary);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  font-weight: 500;
+  font-optical-sizing: auto;
+  /* Tabular lining figures so numbers in tables/tiles align column-wise. */
+  font-feature-settings: 'tnum', 'lnum';
+}
+
+/* Controls (pills, icon buttons, Select and dropdown triggers): their own
+   surface, the stronger control line and a tiny shadow, so a white dropdown
+   on a white card still reads as a control. The name is historic; see
+   dashboard/DESIGN_BRIEF.md. */
+.glass {
+  background: var(--color-surface-control);
+  border: 1px solid var(--color-line-strong);
+  box-shadow: var(--shadow-control);
+  /* position intentionally omitted, inherit from whatever Tailwind util
+     (.absolute, .fixed, .relative) the consumer applied. Using `relative`
+     here hijacked position:absolute on .absolute.glass combos. */
+  isolation: isolate;
+}
+
+/* === DESIGN SYSTEM ====================================================
+   Standard tokens used across every tab. Anything that doesn't read off
+   these utilities is breaking the system. */
+
+/* Page-level container (chart panels, big section wrappers): a raised card
+   with the quiet line and a light shadow, 12px radius. */
+/* In the components layer so a utility on the same element wins (p-0,
+   py-16, sticky, border-l-4, bg-error/10, ...). Unlayered, these rules beat
+   every Tailwind utility and silently ignored them. */
+@layer components {
+  .atelier-section {
+    position: relative;
+    border-radius: 12px;
+    padding: 24px;
+    overflow: hidden;
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-line);
+    box-shadow: var(--shadow-container);
+    isolation: isolate;
+  }
+}
+.atelier-section > * { position: relative; z-index: 1; }
+
+/* Pulsing shimmer placeholder for ad card thumbnails while the image
+   loads, soft creamtolight-gray gradient drifting across the tile. */
+.ac-thumb-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-hover) 0%,
+    color-mix(in oklab, var(--color-text-primary) 10%, transparent) 40%,
+    var(--color-hover) 80%
+  );
+  background-size: 200% 100%;
+  animation: ac-thumb-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes ac-thumb-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* KPI tile / small card (the tile rows above charts, widget frames). Same
+   raised surface and light shadow as .atelier-section, 16px padding. In the
+   components layer, like .atelier-section, so utilities on a tile apply. */
+@layer components {
+  .atelier-tile {
+    position: relative;
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow-container);
+    isolation: isolate;
+  }
+}
+
+/* Page hierarchy fonts, apply via classes so every tab leads with the
+   same h2 size and the same kpi-number / section-title sizes. */
+.atelier-h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.atelier-section-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.atelier-kpi-number {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-feature-settings: 'tnum', 'lnum';
+  line-height: 1.1;
+}
+.atelier-kpi-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+.atelier-kpi-sub {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+/* Standard pill button, every action button across every tab. */
+.atelier-pill {
+  background: var(--color-surface-control);
+  border: 1px solid var(--color-line-strong);
+  box-shadow: var(--shadow-control);
+  border-radius: 9999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.atelier-pill:hover {
+  background: color-mix(in oklab, var(--color-surface-control), var(--color-text-primary) 4%);
+  border-color: var(--color-line-hover);
+  color: var(--color-text-primary);
+}
+
+/* .glass stays a containing block (consumers rely on it for absolutely
+   placed children). Declared in the components layer so Tailwind's
+   .absolute/.fixed/.sticky utilities still win on combos like `absolute glass`. */
+@layer components {
+  .glass { position: relative; }
+}
+
+.glass-hover:hover {
+  background: color-mix(in oklab, var(--color-surface-control), var(--color-text-primary) 4%);
+  border-color: var(--color-line-hover);
+}
+
+/* Fields: every bordered text input sits recessed with the control line, in
+   cards and on the canvas alike (unlayered on purpose so it wins over the
+   old bg-white/NN fills; inputs without their own border, e.g. inside a
+   composite search box, are left alone). */
+:is(input, textarea).border:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  background-color: var(--color-surface-recessed);
+  border-color: var(--color-line-strong);
+  color: var(--color-text-primary);
+}
+:is(input, textarea).border:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus {
+  border-color: var(--color-focus);
+}
+::placeholder { color: var(--color-text-faint); }
+
+/* One focus treatment everywhere: a rust ring, offset from the control. */
+@layer base {
+  :is(button, a, [role="tab"], [role="checkbox"], [role="button"], summary):focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
+
+/* Force all dropdown panels to overlay, never push content.
+   Sits above the sidebar brand-menu popover (z=10001) so pill dropdowns
+   always render on top when both happen to be open. */
+.dropdown-panel {
+  position: absolute !important;
+  top: calc(100% + 2px) !important;
+  left: 0;
+  margin-top: 0;
+  z-index: 10100 !important;
+}
+
+/* Each pill wrapper (`.relative.flex-shrink-0`) is its own stacking
+   context. A child popover's ``z-index: 10100`` only wins inside its
+   own context, siblings' pill text was rendering ON TOP of the
+   popover. Using :has() to elevate the wrapper itself when it contains
+   an open dropdown-panel fixes this globally without touching JSX. */
+.relative:has(> .dropdown-panel),
+.relative:has(> .dropdown-panel *) {
+  z-index: 10101;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-line-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-line-hover); }
+/* Where a vertical and a horizontal scrollbar meet: the browser default is a
+   white square, which shows in dark mode. */
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* THE app-standard form select, every native <select> that lives inside a
+   form/card (toolbar dropdowns use ui/Select.tsx instead). One look. */
+.atelier-select {
+  appearance: none;
+  background-color: var(--color-surface-control);
+  border: 1px solid var(--color-line-strong);
+  box-shadow: var(--shadow-control);
+  border-radius: 9999px;
+  padding: 4px 22px 4px 10px;
+  font-size: 11px;
+  color: var(--color-text-primary);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239a9488' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  cursor: pointer;
+}
+.atelier-select:focus { outline: none; border-color: var(--color-focus); }
+
+.atelier-hovercard { animation: atelier-hovercard-in 90ms ease-out; }
+@keyframes atelier-hovercard-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atelier-hovercard { animation: none; }
+}
+
+.atelier-widget-new .atelier-widget { animation: atelier-widget-in 1.4s ease-out; }
+@keyframes atelier-widget-in {
+  0% { box-shadow: 0 0 0 2px rgba(183, 65, 14, 0.45), 0 8px 24px -12px rgba(0, 0, 0, 0.10); }
+  100% { box-shadow: 0 0 0 0 rgba(183, 65, 14, 0), 0 8px 24px -12px rgba(0, 0, 0, 0.10); }
+}
+
+/* Constellation's own pieces (the lockup, the space panel, the drawer, states) live in ui/odylic/constellation.css. */

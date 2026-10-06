@@ -1,0 +1,31 @@
+/* Chart tiles in the ad drawer (loaded with the chart chunk). Colours come from ChartKit for the look on screen;
+   these rules keep recharts' focus box off the plot (the tiles' own controls carry the focus ring) and, on the
+   Odylic ground, match Atelier's "Recharts on glass": ticks in near-full ink, a hairline grid, the base line on the
+   axis, no tick marks, and tooltip rows in ink (the dot keeps the series colour). Scoped to the tiles. */
+.fv-charts .recharts-wrapper,
+.fv-charts .recharts-surface,
+.fv-charts .recharts-wrapper *:focus {
+  outline: none;
+}
+.fv-charts .recharts-tooltip-wrapper { pointer-events: none; }
+
+.ody-scope .fv-charts :is(.recharts-cartesian-axis-tick-value, .recharts-cartesian-axis-tick-value tspan) {
+  font-family: var(--ody-font-sans);
+  fill: color-mix(in srgb, var(--fg) 90%, transparent);
+}
+.ody-scope .fv-charts .recharts-cartesian-grid line { stroke: var(--hair2); }
+.ody-scope .fv-charts .recharts-cartesian-axis-line { stroke: var(--base-line); }
+.ody-scope .fv-charts .recharts-cartesian-axis-tick-line { display: none; }
+.ody-scope .fv-charts .recharts-default-tooltip { font-family: var(--ody-font-sans); }
+.ody-scope .fv-charts .recharts-default-tooltip :is(.recharts-tooltip-item-name, .recharts-tooltip-item-separator) {
+  color: rgba(255, 252, 242, .8) !important;
+}
+.ody-scope .fv-charts .recharts-default-tooltip :is(.recharts-tooltip-item-value, .recharts-tooltip-item-unit) {
+  color: #FFFCF2 !important; font-weight: 500;
+}
+.ody-scope.ody-ground-light .fv-charts .recharts-default-tooltip :is(.recharts-tooltip-item-name, .recharts-tooltip-item-separator) {
+  color: rgba(30, 29, 28, .72) !important;
+}
+.ody-scope.ody-ground-light .fv-charts .recharts-default-tooltip :is(.recharts-tooltip-item-value, .recharts-tooltip-item-unit) {
+  color: #1E1D1C !important;
+}

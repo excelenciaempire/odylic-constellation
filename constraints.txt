@@ -1,0 +1,25 @@
+# The exact versions the app was tested with. install.sh installs
+# requirements.txt under these constraints, so every install gets the same
+# packages instead of whatever is newest on PyPI that day. A package only some
+# Pythons need (exceptiongroup on 3.10) is left free.
+# To move to newer versions: upgrade in a fresh venv, run the tests, then
+# replace these pins with that venv's `pip freeze` (runtime packages only).
+annotated-doc==0.0.5
+annotated-types==0.8.0
+anyio==4.15.1
+certifi==2026.7.22
+charset-normalizer==3.5.2
+click==8.5.0
+fastapi==0.142.2
+h11==0.16.0
+idna==3.20
+opentelemetry-api==1.45.0
+pydantic==2.13.5
+pydantic_core==2.46.5
+python-dotenv==1.2.4
+requests==2.34.2
+starlette==1.7.0
+typing-inspection==0.4.4
+typing_extensions==4.16.0
+urllib3==2.8.0
+uvicorn==0.54.0

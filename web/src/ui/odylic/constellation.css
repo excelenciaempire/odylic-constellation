@@ -1,0 +1,149 @@
+/*
+ * Constellation's own pieces on the Odylic look (odylic.css is the shared port from Atelier; this file loads after
+ * it): the wordmark lockup, the space panel and what floats over it, the drawer, the plain view and slideshow, the
+ * states and the onboarding bits.
+ */
+
+/* ---------- the lockup ----------
+   Peter's wordmark, traced from his file (public/brand/odylic-wordmark.svg), drawn as a mask so it takes the ink of
+   either theme, then "Constellation" on its baseline. The logo's box is the trace's ink box (1055.12 x 325.98 units);
+   the bottom of O, d, l, i and c sits 76.98 units above its bottom edge (the y's descender), so vertical-align drops
+   the box by exactly that share of its height and the two baselines meet. */
+.fv-wordmark {
+  --logo-h: 24px;
+  display: inline-block; white-space: nowrap; line-height: 1; font-size: 17px; color: var(--fg);
+  user-select: none; -webkit-user-select: none;
+}
+.fv-logo {
+  display: inline-block;
+  height: var(--logo-h);
+  width: calc(var(--logo-h) * 3.236763);
+  vertical-align: calc(var(--logo-h) * -0.236149);
+  background-color: currentColor;
+  -webkit-mask: url("/brand/odylic-wordmark.svg") 0 0 / 100% 100% no-repeat;
+  mask: url("/brand/odylic-wordmark.svg") 0 0 / 100% 100% no-repeat;
+}
+.fv-wordmark-name {
+  margin-left: .38em;
+  font-family: var(--ody-font-sans); font-weight: 400; letter-spacing: .005em; color: var(--fg2);
+}
+@media (max-width: 640px) { .fv-wordmark { --logo-h: 21px; font-size: 15px; } }
+
+/* the top bar sits on the ground: no band, no rule */
+.fv-topbar { background: transparent; }
+
+/* ---------- the space panel ---------- */
+.fv-space { border-radius: 8px; }
+/* a plain view or a slideshow takes the panel: the canvas and its overlays step out, the panel's glass stays */
+.fv-space:has(> .ody-plainview, > .ody-slideshow) > :not(.ody-plainview):not(.ody-slideshow) { visibility: hidden; }
+
+/* what floats over the canvas: thick glass from frost.ts, 8px corners */
+.ody-scope .fv-space .ody-overlay { border-radius: 8px; }
+.ody-scope .fv-space .ody-overlay .divide-line > :not(:last-child) { border-color: var(--hair); }
+/* the Arrange trigger: a glass pill on its own frost */
+.ody-scope .fv-float-pill { border-radius: 999px; box-shadow: 0 8px 22px -12px rgba(0, 0, 0, .6); }
+.ody-scope.ody-day .fv-float-pill { box-shadow: 0 8px 22px -12px rgba(30, 29, 28, .35); }
+/* the hover card */
+.ody-scope .fv-tip { border-radius: 8px; }
+
+/* ---------- the ad drawer: thick glass docked over the right of the space panel ---------- */
+.fv-drawer { animation: fv-drawer-in 180ms cubic-bezier(.2, .7, .3, 1); }
+@keyframes fv-drawer-in { from { transform: translateX(18px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (min-width: 640px) {
+  .ody-scope .fv-drawer { right: 20px; bottom: 20px; border-radius: 8px; overflow: hidden; }
+}
+
+/* ---------- the plain view and the slideshow: the panel's own glass, glass cards and tiles on it ---------- */
+.ody-scope :is(.ody-plainview, .ody-slideshow) { background: transparent; }
+.ody-scope :is(.ody-card, .ody-tile) {
+  border-color: transparent; border-radius: 8px;
+  background-color: rgba(20, 19, 18, .34);
+  background-image: linear-gradient(var(--lg-tint), var(--lg-tint));
+  box-shadow: var(--lg-hair);
+}
+.ody-scope.ody-day :is(.ody-card, .ody-tile) { background-color: rgba(255, 255, 255, .5); }
+.ody-scope .ody-card { transition: box-shadow .2s ease, background-color .2s ease; }
+.ody-scope .ody-card:hover { box-shadow: var(--lg-hair-hover), var(--shadow-popover); }
+.ody-scope .ody-card.border-text-primary { box-shadow: inset 0 0 0 1px var(--fg), var(--shadow-popover); }
+.ody-scope .ody-card > :first-child { border-radius: 8px 8px 0 0; }
+/* the slideshow's side arrows sit over the creative: deeper glass so they read on any image */
+.ody-scope .ody-slideshow .ody-btn-icon.absolute { background: var(--lg-menu); box-shadow: var(--lg-hair-hover); color: var(--fg); }
+.ody-scope .ody-slideshow [role="tab"][aria-selected] { border-radius: 6px; }
+
+/* ---------- states ---------- */
+.fv-dot-error { width: 6px; height: 6px; border-radius: 50%; flex: none; background: #EC7A6F; }
+.ody-day .fv-dot-error { background: #B83C2A; }
+/* the loading line: a hairline track, a short ink sweep (Atelier's panel loading bar) */
+.fv-progress { position: relative; overflow: hidden; height: 2px; border-radius: 999px; background: var(--hair); }
+.fv-progress > span {
+  position: absolute; inset: 0 auto 0 0; width: 30%; border-radius: inherit; background: var(--fg2);
+  animation: fv-progress 1.2s cubic-bezier(.45, 0, .2, 1) infinite;
+}
+@keyframes fv-progress { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+
+/* the destructive confirm in the settings menu: a pill in the error tint */
+.ody-scope .fv-btn-danger { color: #FFFCF2; background: rgba(150, 52, 38, .78); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18); transition: background-color .2s ease; }
+.ody-scope .fv-btn-danger:hover { background: rgba(170, 58, 42, .9); }
+.ody-scope.ody-day .fv-btn-danger { color: #FFFCF2; background: #8A2A1C; box-shadow: none; }
+
+/* ---------- long-form copy (onboarding, notices) ---------- */
+.fv-prose p { margin: 0 0 8px; }
+.fv-prose a { color: var(--color-accent-ink); text-decoration: underline; text-underline-offset: 2px; }
+.fv-prose code, code.fv-code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, monospace;
+  font-size: 12px; padding: 1px 5px; border-radius: 5px;
+  background: var(--color-surface-recessed); box-shadow: inset 0 0 0 1px var(--hair);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fv-progress > span, .fv-drawer { animation: none; }
+}
+
+/* ======================================================================
+   Dark mode, calmer glass (Peter, Oct 5 2026: "on dark mode the glass less transparent, the background is a bit
+   distracting"). The ground's folds now read as a faint glow, mostly at the edges, and the cards, lines and labels
+   sit on a nearly flat dark field. The rims keep their colour: the field lays each surface's --gf-veil over its frost
+   UNDER the rim (glassField.ts), and the rim is drawn from the render itself.
+   ====================================================================== */
+/* the ground a notch deeper outside the panels */
+.ody-night .ody-bg-fan::after {
+  background: var(--ody-scrim) top / 100% var(--ody-scrim-h, 380px) no-repeat,
+    linear-gradient(rgba(16, 15, 14, .34), rgba(16, 15, 14, .34));
+}
+/* small glass on the ground (header pills and buttons): about .85 */
+.ody-scope.ody-night :is(.ody-pill, button.rounded-full[aria-haspopup], button.glass, [data-seg="pill"] [role="tab"], .ody-chip,
+  .ody-tag, .ody-badge, .ody-btn-icon, .ody-btn-secondary, .ody-btn-primary, .ody-field) { --gf-veil: rgba(28, 26, 24, .84); }
+/* panels (onboarding cards, notices) and the demo banner: with their fog, about .88 and .85 */
+.ody-scope.ody-night :is(.ody-glass, .atelier-section) { --gf-veil: rgba(26, 24, 23, .8); }
+.ody-scope.ody-night .fv-banner { --gf-veil: rgba(26, 24, 23, .74); }
+/* the space panel: about .9 of deep charcoal, no cream tint, so the field is nearly flat. Its --color-surface is that
+   field's colour: the engine draws the label halos in it (readSpaceTheme probes inside the panel), so labels cut
+   cleanly over cards and the field alike. */
+.ody-scope.ody-night .fv-space {
+  --gf-veil: rgba(24, 23, 21, .84);
+  --color-surface: #1f1d1b;
+  background-color: transparent;
+}
+/* what floats over the canvas (KPI strip, legend, Arrange, canvas controls): about .85 */
+.ody-scope.ody-night .fv-space :is(.ody-overlay, .fv-float-pill) { --fr-tint: rgba(28, 26, 24, .85); }
+/* menus, popovers, the date picker, the drawer, the group menu, the hover card: about .94, near solid */
+.ody-scope.ody-night { --lg-menu: rgba(30, 28, 26, .94); --lg-sheet: rgba(30, 28, 26, .94); }
+/* the plain view and the slideshow: a further veil over the panel, feathered at the edges so the panel's rim stays */
+.ody-scope.ody-night .fv-space > :is(.ody-plainview, .ody-slideshow) { isolation: isolate; }
+.ody-scope.ody-night .fv-space > :is(.ody-plainview, .ody-slideshow)::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
+  background: rgba(24, 23, 21, .55);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent),
+    linear-gradient(180deg, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent),
+    linear-gradient(180deg, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+  mask-composite: intersect;
+}
+
+/* the group menu: room for its hints at the 12px floor */
+.ody-scope .ody-menu { width: 272px; }
+/* the plain view's cards: wide enough for spend, ROAS and CTR on one line at the 12px floor */
+@media (min-width: 640px) {
+  .ody-scope .ody-plainview .grid { grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)) !important; }
+}
