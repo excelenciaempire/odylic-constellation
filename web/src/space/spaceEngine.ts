@@ -1146,6 +1146,34 @@ export class SpaceEngine {
     return { left: [lx, ly], right: [rx, ry] }
   }
 
+  /**
+   * A horizontal ring's exact on-screen left and right extremes, with the projection scale at each. ring()
+   * samples 72 points, and as the view turns its extreme hops between them, which shook anything anchored
+   * to it (the funnel's lane labels). Coarse samples, then a ternary search either side of the best one.
+   */
+  private rimExtremes(r: number, y: number): { left: { x: number; s: number }; right: { x: number; s: number } } | null {
+    const N = 48
+    let bi = 0, bv = -Infinity, si = 0, sv = Infinity
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2
+      if (!this.project(Math.sin(a) * r, y, Math.cos(a) * r)) return null
+      if (this.P.px > bv) { bv = this.P.px; bi = i }
+      if (this.P.px < sv) { sv = this.P.px; si = i }
+    }
+    const refine = (i0: number, sign: number) => {
+      let lo = ((i0 - 1) / N) * Math.PI * 2, hi = ((i0 + 1) / N) * Math.PI * 2
+      const at = (a: number) => { this.project(Math.sin(a) * r, y, Math.cos(a) * r); return sign * this.P.px }
+      for (let k = 0; k < 24; k++) {
+        const m1 = lo + (hi - lo) / 3, m2 = hi - (hi - lo) / 3
+        if (at(m1) < at(m2)) lo = m1
+        else hi = m2
+      }
+      at((lo + hi) / 2)
+      return { x: this.P.px, s: this.P.s }
+    }
+    return { right: refine(bi, 1), left: refine(si, -1) }
+  }
+
   private line(a: Vec3, b: Vec3) {
     if (!this.project(a.x, a.y, a.z)) return
     const px = this.P.px, py = this.P.py
@@ -1420,17 +1448,23 @@ export class SpaceEngine {
         const yMid = (b.y0 + b.y1) / 2
         const ok = this.project(0, yMid, 0)
         const p = ok ? { py: this.P.py, s: this.P.s, zc: this.P.zc } : null
-        return { b, p, rim: this.ring(b.r * 1.03, yMid) }
+        return { b, p, rim: this.rimExtremes(b.r * 1.03, yMid) }
       })
-      let minLeft = Infinity, maxRight = -Infinity, sMax = 0
+      // The column clears the funnel's widest rim plus the biggest card's half width at that edge (cards face
+      // the camera, so a card on the rim reaches half its width past it). Both hold still while the funnel
+      // turns about its axis, so the labels do too; measuring against the cards drawn each frame made the
+      // column slide as cards passed the edge.
+      let half = 0
+      for (const n of this.list) if (n.visT > 0 && n.size > half) half = n.size
+      half /= 2
+      let minLeft = Infinity, maxRight = -Infinity
       for (const x of bands) {
         if (!x.rim || !x.p) continue
-        minLeft = Math.min(minLeft, x.rim.left[0])
-        maxRight = Math.max(maxRight, x.rim.right[0])
-        sMax = Math.max(sMax, x.p.s)
+        minLeft = Math.min(minLeft, x.rim.left.x - half * x.rim.left.s)
+        maxRight = Math.max(maxRight, x.rim.right.x + half * x.rim.right.s)
       }
       // Right of the funnel by default: the legend owns the bottom left.
-      const pad = 22 + 60 * sMax
+      const pad = 18
       const useLeft = maxRight + pad + 200 > this.W && minLeft - pad >= 150
       const subMax = this.W < 560 ? 20 : 36
       // The column's width (names, counts and sub lines): close up on a lane, the wide rims above it reach far
@@ -1462,18 +1496,11 @@ export class SpaceEngine {
         items[i].y = Math.min(items[i].y, ceil)
         if (i) ceil = items[i].y - items[i - 1].step
       }
-      // The rims are measured at each lane's middle; up close the near cards stand out past them. The column
-      // also clears any card drawn level with a pill (on its side of the funnel).
       let anchor = useLeft ? minLeft - pad : maxRight + pad
-      for (let i = 0; i < this.drawnCount; i++) {
-        const d = this.drawn[i]
-        if (d.a < 0.2) continue
-        const top = d.sy - d.h / 2, bot = d.sy + d.h / 2
-        if (!items.some(it => bot > it.y - 12 && top < it.y + it.step - 8)) continue
-        if (useLeft) { if (d.sx < this.W / 2) anchor = Math.min(anchor, d.sx - d.w / 2 - 10) }
-        else if (d.sx > this.W / 2) anchor = Math.max(anchor, d.sx + d.w / 2 + 10)
-      }
       anchor = useLeft ? Math.max(anchor, colW + OVERLAY_INSET) : Math.min(anchor, this.W - colW - OVERLAY_INSET)
+      // Whole pixels: text drawn at fractional positions shimmers as its antialiasing shifts.
+      anchor = Math.round(anchor)
+      for (const it of items) it.y = Math.round(it.y)
       const align: 'right' | 'left' = useLeft ? 'right' : 'left'
       for (const { c, fs, y } of items) {
         const n = this.visibleCount(c)
