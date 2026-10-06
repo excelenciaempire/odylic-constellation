@@ -164,10 +164,14 @@ export const api = {
 /** Thumbnail URL for an ad (the backend's disk-cached proxy). `version` (the
  *  ad's creative_hash) changes the URL when the creative changes, so the
  *  browser's day-long cache never shows an edited ad's old image. */
+/** Bump when the demo images change, so browsers drop the old ones from their day-long cache. */
+const DEMO_THUMBS_VERSION = 'd2'
+
 export const thumbUrl = (adId: string, demo: boolean, version?: string | null) => {
   const q = new URLSearchParams()
   if (demo) q.set('demo', '1')
-  if (version && !demo) q.set('v', version)
+  if (demo) q.set('v', DEMO_THUMBS_VERSION)
+  else if (version) q.set('v', version)
   const qs = q.toString()
   return `/api/thumb/${encodeURIComponent(adId)}${qs ? `?${qs}` : ''}`
 }
