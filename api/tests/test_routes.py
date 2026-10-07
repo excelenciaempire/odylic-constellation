@@ -3,6 +3,7 @@ import io
 import json
 import os
 import stat
+import sys
 from urllib.parse import urlsplit
 
 import pytest
@@ -71,7 +72,8 @@ def test_full_connected_flow(client, temp_data_dir):
     assert r.status_code == 200, r.text
     assert r.json()["accounts"][0]["id"] == "act_5"
     cfg_path = temp_data_dir / "config.json"
-    assert stat.S_IMODE(os.stat(cfg_path).st_mode) == 0o600
+    if sys.platform != "win32":  # Windows privacy is enforced by ACL, tested in test_windows.py.
+        assert stat.S_IMODE(os.stat(cfg_path).st_mode) == 0o600
 
     st = client.get("/api/status").json()
     assert st["connected"] and st["mode"] == "token" and st["account"] is None

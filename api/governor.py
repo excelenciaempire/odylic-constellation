@@ -42,6 +42,7 @@ from typing import Optional
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from . import store
+from .platform_support import process_file_lock
 
 # ---------------------------------------------------------------------------
 # Limits
@@ -139,22 +140,13 @@ _thread_lock = threading.RLock()
 
 @contextmanager
 def _locked():
-    """Thread lock plus an fcntl lock file shared by every process."""
+    """Thread lock plus an OS file lock shared by every process."""
     with _thread_lock:
         try:
-            import fcntl
-            fh = open(_lock_path(), "a")
-            fcntl.flock(fh, fcntl.LOCK_EX)
+            with process_file_lock(_lock_path()):
+                yield
         except (OSError, ImportError) as e:
             raise MetaThrottled(f"Rate governor lock unavailable ({e}); Meta calls are refused for safety.") from e
-        try:
-            yield
-        finally:
-            try:
-                fcntl.flock(fh, fcntl.LOCK_UN)
-                fh.close()
-            except Exception:
-                pass
 
 
 def _read_state() -> dict:

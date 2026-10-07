@@ -1,0 +1,3 @@
+# Build-only dependencies; end users do not need Python or Node.js.
+pyinstaller==6.22.3
+pillow==12.3.0

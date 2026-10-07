@@ -1,4 +1,8 @@
 .venv/
+dist/
+build/
+release/
+scripts/windows/app.ico
 __pycache__/
 *.pyc
 .pytest_cache/

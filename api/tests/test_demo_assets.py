@@ -9,12 +9,12 @@ DEMO = Path(__file__).resolve().parent.parent / "demo"
 
 def test_no_template_ids_in_the_builder():
     for name in ("build_demo.py", "render_thumbs.py"):
-        assert "cos-" not in (DEMO / name).read_text(), name
+        assert "cos-" not in (DEMO / name).read_text(encoding="utf-8"), name
 
 
 def test_thumbs_match_the_generated_manifest():
     manifest = {}
-    for line in (DEMO / "thumbs" / "MANIFEST").read_text().splitlines():
+    for line in (DEMO / "thumbs" / "MANIFEST").read_text(encoding="utf-8").splitlines():
         digest, name = line.split()
         manifest[name] = digest
     on_disk = {p.name for p in (DEMO / "thumbs").glob("*") if p.name != "MANIFEST"}
@@ -22,6 +22,6 @@ def test_thumbs_match_the_generated_manifest():
     for name, digest in manifest.items():
         got = hashlib.sha256((DEMO / "thumbs" / name).read_bytes()).hexdigest()
         assert got == digest, f"{name} does not match MANIFEST"
-    data = json.loads((DEMO / "demo.json").read_text())
+    data = json.loads((DEMO / "demo.json").read_text(encoding="utf-8"))
     assert {a["thumb"] for a in data["ads"]} <= set(manifest)
     assert "images" in data["note"]

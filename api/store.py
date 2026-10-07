@@ -2,11 +2,12 @@
 
 Everything lives in DATA_DIR:
   macOS:  ~/Library/Application Support/Odylic Constellation
-  other:  ~/.odylic-constellation
+  Windows: %LOCALAPPDATA%/Odylic Constellation
+  Linux:   ~/.odylic-constellation
 ODYLIC_FUNNEL_DATA_DIR overrides it (tests, portable installs).
 
 config.json holds the access token, so it is written with mode 0600 and the
-directory with 0700. The token never leaves this module except to the Graph
+directory with 0700 (a private per-user NTFS ACL on Windows). The token never leaves this module except to the Graph
 client; nothing here logs or returns it.
 """
 from __future__ import annotations
@@ -23,7 +24,10 @@ import time
 from pathlib import Path
 from typing import Any, Optional
 
+from .platform_support import private_permissions
+
 _LOCK = threading.RLock()
+_PRIVATE_DIRS: set[Path] = set()
 
 CONFIG_KEYS = ("token", "mode", "account", "accounts", "consent")
 
@@ -35,13 +39,16 @@ def data_dir() -> Path:
         d = Path(override).expanduser()
     elif sys.platform == "darwin":
         d = Path.home() / "Library" / "Application Support" / "Odylic Constellation"
+    elif sys.platform == "win32":
+        d = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local") / "Odylic Constellation"
     else:
         d = Path.home() / ".odylic-constellation"
     d.mkdir(parents=True, exist_ok=True)
-    try:
-        os.chmod(d, 0o700)
-    except OSError:
-        pass
+    resolved = d.resolve()
+    with _LOCK:
+        if resolved not in _PRIVATE_DIRS:
+            private_permissions(d, 0o700)
+            _PRIVATE_DIRS.add(resolved)
     return d
 
 
@@ -67,7 +74,7 @@ def _atomic_write(path: Path, text: str, mode: int = 0o600) -> None:
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
             fh.write(text)
-        os.chmod(tmp, mode)
+        private_permissions(tmp, mode)
         os.replace(tmp, path)
     finally:
         if tmp.exists():
@@ -91,10 +98,11 @@ def load_config() -> dict:
         except (OSError, ValueError):
             cfg = {}
         try:
-            if p.exists() and (p.stat().st_mode & 0o077):
-                os.chmod(p, 0o600)
+            if p.exists():
+                private_permissions(p, 0o600)
         except OSError:
-            pass
+            if sys.platform == "win32":
+                raise
         return {k: cfg.get(k) for k in CONFIG_KEYS}
 
 

@@ -11,6 +11,8 @@ import { Segmented } from '../ui/Segmented'
 import { Wordmark } from './Header'
 
 type Step = 1 | 2 | 3 | 4
+const WINDOWS = /Windows/i.test(navigator.userAgent)
+const ENV_FILE = WINDOWS ? '%USERPROFILE%\\.env' : '~/.env'
 const STEPS: Array<{ id: Step; title: string }> = [
   { id: 1, title: 'Welcome' },
   { id: 2, title: 'Connect' },
@@ -95,7 +97,7 @@ function StepWelcome({ consented, onNext }: { consented: boolean; onNext: () => 
           Constellation lays out every ad of one Meta ad account in a 3D space, grouped by where Meta actually
           delivers it: new people, people who engaged, or existing customers. Click any ad for its numbers.
         </p>
-        <p>It runs only on this Mac. Your token and ad data go only to Meta, never anywhere else.</p>
+        <p>It runs only on this computer. Your token and ad data go only to Meta, never anywhere else.</p>
       </div>
 
       <div className="mt-5 border border-line rounded-xl px-4 py-3.5 bg-surface-recessed">
@@ -143,7 +145,7 @@ function StepConnect({ status, onConnected, onBack }: {
   onBack: () => void
 }) {
   const cli = status?.cli
-  const [method, setMethod] = useState<Method>(cli?.installed ? 'cli' : 'token')
+  const [method, setMethod] = useState<Method>(cli?.installed || cli?.has_credentials ? 'cli' : 'token')
   const [token, setToken] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<{ code: string; message: string } | null>(null)
@@ -163,7 +165,7 @@ function StepConnect({ status, onConnected, onBack }: {
   return (
     <Card>
       <H>Connect your Meta ads</H>
-      <p className="text-[13px] text-text-secondary mb-4">Pick one way in. Both stay read-only and on this Mac.</p>
+      <p className="text-[13px] text-text-secondary mb-4">Pick one way in. Both stay read-only and on this computer.</p>
       <Segmented<Method> ariaLabel="How to connect" value={method} onChange={m => { setMethod(m); setError(null) }}
         options={[
           { value: 'cli', label: 'Meta Ads CLI', icon: <Terminal size={12} />, title: 'Recommended if you already use it' },
@@ -175,26 +177,26 @@ function StepConnect({ status, onConnected, onBack }: {
           <p>
             <strong className="text-text-primary">Recommended if you already use it.</strong> The official Meta Ads CLI keeps
             your login in <code>ACCESS_TOKEN</code> and <code>AD_ACCOUNT_ID</code> (your shell environment or a <code>.env</code>
-            file such as <code>~/.env</code>). Constellation reads them the same way the CLI does.
+            file such as <code>{ENV_FILE}</code>). Constellation reads them the same way the CLI does.
           </p>
           <div className="text-[12px] flex items-center gap-2">
             <span className={`w-1.5 h-1.5 rounded-full ${cli?.installed ? 'bg-success-solid' : 'bg-neutral-400'}`} />
             {cli?.installed
               ? <span>CLI found{cli.path ? <> at <code>{cli.path}</code></> : null}{cli.has_credentials ? ', with credentials' : ', but no ACCESS_TOKEN yet'}.</span>
-              : <span>CLI not found on this Mac.</span>}
+              : <span>CLI not installed. Environment credentials can still be used.</span>}
           </div>
           {!cli?.installed && (
             <>
-              <div className="text-[12px]">Install it with pip or Homebrew:</div>
-              <CopyCode text="pip install meta-ads" />
-              <CopyCode text="brew tap facebook/fb && brew install meta-ads" />
+              <div className="text-[12px]">Optional: install the CLI if Python is available.</div>
+              <CopyCode text={WINDOWS ? 'py -m pip install meta-ads' : 'pip install meta-ads'} />
+              {!WINDOWS && <CopyCode text="brew tap facebook/fb && brew install meta-ads" />}
             </>
           )}
-          <p className="text-[12px]">Then sign in with the CLI (or set <code>ACCESS_TOKEN</code>) and press Connect.</p>
+          <p className="text-[12px]">Set <code>ACCESS_TOKEN</code> in <code>{ENV_FILE}</code> and press Connect. The CLI does not need to be installed.</p>
           {error && (
             <ErrorBox>
               {error.message}
-              {error.code === 'cli_no_credentials' && <> Set <code>ACCESS_TOKEN</code> (and optionally <code>AD_ACCOUNT_ID</code>) in <code>~/.env</code>, or use an access token instead.</>}
+              {error.code === 'cli_no_credentials' && <> Set <code>ACCESS_TOKEN</code> (and optionally <code>AD_ACCOUNT_ID</code>) in <code>{ENV_FILE}</code>, or use an access token instead.</>}
             </ErrorBox>
           )}
           <div className="flex justify-between mt-2">
@@ -206,7 +208,7 @@ function StepConnect({ status, onConnected, onBack }: {
         </div>
       ) : (
         <div className="mt-5 flex flex-col gap-3 text-[13px] text-text-secondary leading-relaxed fv-prose">
-          <p>A system user token from your Business Manager does not expire. About five minutes:</p>
+          <p>Use a system user token from your Business Manager. About five minutes:</p>
           <ol className="list-decimal pl-5 flex flex-col gap-1.5 text-[12.5px]">
             <li>Open <a href="https://business.facebook.com/settings/system-users" target="_blank" rel="noreferrer">Business Settings, Users, System users</a>.</li>
             <li>Add a system user (the Employee role is enough).</li>
@@ -223,7 +225,7 @@ function StepConnect({ status, onConnected, onBack }: {
           <textarea value={token} onChange={e => setToken(e.target.value)} rows={3} spellCheck={false} autoComplete="off"
             placeholder="Paste your access token" aria-label="Access token"
             className="w-full border rounded-lg px-3 py-2 text-[12px] font-mono focus:outline-none resize-none" />
-          <p className="text-[11px] text-text-muted">Stored only in this Mac's app folder (owner-only file), never sent anywhere but Meta.</p>
+          <p className="text-[11px] text-text-muted">Stored only in this computer's private app folder, never sent anywhere but Meta.</p>
           {error && <ErrorBox>{error.message}</ErrorBox>}
           <div className="flex justify-between mt-1">
             <button type="button" className={BTN_SECONDARY} onClick={onBack}><ArrowLeft size={13} /> Back</button>

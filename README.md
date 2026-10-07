@@ -5,9 +5,26 @@ by where Meta actually delivered them: new people, engaged people, or existing c
 Regroup them by your naming convention, by format, campaign, ad set or spend cohort. Click any
 card for its numbers and charts. Scroll toward any ad to zoom right onto it.
 
-Free. Runs on your own Mac. Read-only: it never changes anything in your ad account.
+Free. Runs on your own Windows PC, Mac or Linux computer. Read-only: it never changes anything in your ad account.
 
 ![Odylic Constellation, demo brand](docs/screenshot.jpg)
+
+## Install (Windows 10 / 11)
+
+Use the Windows installer or portable package from [Windows releases](https://github.com/excelenciaempire/odylic-constellation/releases). The desktop build
+includes Python and the compiled web app; Git, Python, Node.js and administrator access are
+not required. Open **Odylic Constellation** from the Start menu after installation.
+
+For a source checkout, install Git, Python 3.10+ and Node.js 20.19+ (or 22.12+), then run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -InstallDirectory "$PWD" -SkipGit -DesktopShortcut
+```
+
+Double-click **start.cmd**, or open the Start menu shortcut. The app opens at
+http://127.0.0.1:8777 with the same demo and all the 3D views as the macOS version.
+Double-click **stop.cmd** to stop the source version safely. Installation does not open a browser.
+See [Windows installation, privacy and troubleshooting](docs/WINDOWS.md).
 
 ## Install (macOS)
 
@@ -47,7 +64,8 @@ Then put `ACCESS_TOKEN=...` and `AD_ACCOUNT_ID=act_...` in `~/.env`.
 In Meta Business Settings, open System users, add one, assign it your ad account with view access,
 and generate a token with the `ads_read` permission. Paste it into the app. The token is stored only
 on your Mac, in `~/Library/Application Support/Odylic Constellation/config.json`, readable by your
-user alone.
+user alone. On Windows it is stored in `%LOCALAPPDATA%\Odylic Constellation\config.json`,
+with an NTFS access list restricted to your Windows account and SYSTEM.
 
 ## What you can do
 
@@ -90,12 +108,12 @@ Meta restricts apps that call its API too hard. Every call goes through a rate g
   what it already fetched and finishes once the hourly budget has room for the rest.
 - Charts in the ad drawer load one at a time, only for the card you stay on.
 
-Your token and ad data only ever go between your Mac and Meta (`graph.facebook.com` for data, Meta's
+Your token and ad data only ever go between your computer and Meta (`graph.facebook.com` for data, Meta's
 image servers for thumbnails). The page also loads its two fonts from Google Fonts and Fontshare;
 those requests carry no token, no ad data and no referrer.
 
-The local server answers only pages served from this Mac at 127.0.0.1 or localhost. Requests that
-other websites send to it are refused. Other user accounts on the same Mac can still open the page
+The local server answers only pages served from this computer at 127.0.0.1 or localhost. Requests that
+other websites send to it are refused. Other user accounts on the same computer can still open the page
 while the app runs.
 
 ## Update or remove

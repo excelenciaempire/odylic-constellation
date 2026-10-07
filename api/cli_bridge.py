@@ -15,6 +15,7 @@ from __future__ import annotations
 import glob
 import os
 import shutil
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -22,6 +23,17 @@ from dotenv import dotenv_values
 
 
 def _candidate_paths(home: Path) -> list:
+    if sys.platform == "win32":
+        local = Path(os.environ.get("LOCALAPPDATA") or home / "AppData" / "Local")
+        roaming = Path(os.environ.get("APPDATA") or home / "AppData" / "Roaming")
+        pats = [
+            str(roaming / "Python" / "Python*" / "Scripts" / "meta.exe"),
+            str(local / "Programs" / "Python" / "Python*" / "Scripts" / "meta.exe"),
+            str(home / "pipx" / "venvs" / "meta-ads" / "Scripts" / "meta.exe"),
+            str(home / ".local" / "bin" / "meta.exe"),
+        ]
+        return [candidate for pattern in pats for candidate in
+                (sorted(glob.glob(pattern), reverse=True) if "*" in pattern else [pattern])]
     pats = [
         str(home / ".local" / "bin" / "meta"),
         str(home / ".local" / "pipx" / "venvs" / "meta-ads" / "bin" / "meta"),

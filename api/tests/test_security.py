@@ -187,7 +187,8 @@ def test_health_identity_proof(demo_client, temp_data_dir):
     secret = (temp_data_dir / "install_secret").read_text().strip()
     assert r["proof"] == hmac.new(secret.encode(), c.encode(), hashlib.sha256).hexdigest()
     assert secret not in json.dumps(r)
-    assert stat.S_IMODE(os.stat(temp_data_dir / "install_secret").st_mode) == 0o600
+    if sys.platform != "win32":
+        assert stat.S_IMODE(os.stat(temp_data_dir / "install_secret").st_mode) == 0o600
     assert demo_client.get("/api/health?c=short").status_code == 400
     # The secret survives a disconnect (it identifies the install, not the account).
     store.clear_connection()

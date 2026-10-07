@@ -97,7 +97,7 @@ function SettingsMenu({ demo, onChangeAccount, onDisconnect, onConnect }: {
           <div className="text-[12px] text-text-muted mb-1">Rate governor</div>
           <GovernorLine g={gov} />
           <div className="text-[12px] text-text-muted mt-1 leading-snug">
-            Every Meta call goes through a local limit so your access never gets flagged for over-calling.
+            Every Meta call goes through a local limit that paces requests and backs off when Meta signals load.
           </div>
         </div>
         <div className="px-3 py-2 border-b border-line flex items-center justify-between gap-2">
@@ -126,7 +126,7 @@ function SettingsMenu({ demo, onChangeAccount, onDisconnect, onConnect }: {
                 </button>
               ) : (
                 <div className="px-3 py-2 text-[12px] text-text-secondary">
-                  <p className="mb-2 leading-snug">This removes the saved token, the account and every cached pull from this Mac.</p>
+                  <p className="mb-2 leading-snug">This removes the saved token, the account and every cached pull from this computer.</p>
                   <div className="flex gap-2">
                     <button type="button" className="fv-btn-danger h-7 px-3 rounded-full text-[13px]"
                       onClick={() => { setOpen(false); onDisconnect() }}>Disconnect</button>

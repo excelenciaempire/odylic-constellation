@@ -1,5 +1,6 @@
 import os
 import stat
+import sys
 
 from api import cli_bridge
 
@@ -39,7 +40,7 @@ def test_bad_account_id_ignored(tmp_path):
 def test_find_binary_in_common_dirs(tmp_path, monkeypatch):
     monkeypatch.setattr(cli_bridge.shutil, "which", lambda name: None)
     assert cli_bridge.find_binary(home=tmp_path) is None or not str(cli_bridge.find_binary(home=tmp_path)).startswith(str(tmp_path))
-    b = tmp_path / ".local" / "bin" / "meta"
+    b = tmp_path / ".local" / "bin" / ("meta.exe" if sys.platform == "win32" else "meta")
     b.parent.mkdir(parents=True)
     b.write_text("#!/bin/sh\nexit 0\n")
     os.chmod(b, os.stat(b).st_mode | stat.S_IXUSR)
